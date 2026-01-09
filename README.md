@@ -5,6 +5,7 @@
 ## 🎯 系统特性
 
 ### 核心功能
+
 - 🔍 **智能检索**: 基于EmbeddingGemma-300M的向量相似度检索
 - 🤖 **智能问答**: 结合DeepSeek LLM的答案生成
 - 💾 **缓存加速**: 内存+磁盘二级缓存机制
@@ -13,6 +14,7 @@
 - 🔧 **易于集成**: 专为Unity数字人设计
 
 ### 技术优势
+
 - ✅ **专业准确**: 基于整理后的高质量问答知识库
 - ✅ **快速响应**: 缓存机制确保重复查询瞬时响应
 - ✅ **成本优化**: 显著减少LLM API调用次数
@@ -21,6 +23,7 @@
 ## 🚀 快速开始
 
 ### 环境要求
+
 - Python 3.8+
 - 内存: 2GB+ (推荐)
 - 存储: 500MB+ (包含模型文件)
@@ -34,9 +37,13 @@ uv sync
 ### 配置API密钥
 
 创建 `.env` 文件：
+
 ```
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
 DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+
+# RAG功能开关 (设置为 "true" 启用RAG，不设置或设置为其他值则直接使用LLM)
+ENABLE_RAG=false
 ```
 
 ### 启动服务
@@ -60,6 +67,7 @@ python main.py
 ## 🔌 API接口
 
 ### 问答接口
+
 ```http
 POST /api/ask
 Content-Type: application/json
@@ -70,6 +78,7 @@ Content-Type: application/json
 ```
 
 响应：
+
 ```json
 {
   "answer": "灭火器的使用方法包括...",
@@ -79,11 +88,13 @@ Content-Type: application/json
 ```
 
 ### 健康检查
+
 ```http
 GET /api/health
 ```
 
 ### 缓存统计
+
 ```http
 GET /api/cache/stats
 ```
@@ -112,11 +123,13 @@ rag/
 ## ⚙️ 系统配置
 
 ### 向量存储配置
+
 - **嵌入模型**: EmbeddingGemma-300M (通过ModelScope下载)
 - **向量数据库**: ChromaDB (`./chroma_db_gemma`)
 - **缓存机制**: 内存+磁盘二级缓存
 
 ### 缓存配置
+
 - **向量检索缓存**: 2小时TTL
 - **问答结果缓存**: 1小时TTL
 - **缓存目录**: `./cache/`
@@ -146,26 +159,31 @@ string answer = await AskQuestion("在空调出风口晾晒衣物有何火灾风
 ## 📊 性能指标
 
 ### 预期性能
+
 - **检索时间**: <0.15s (使用EmbeddingGemma-300M)
 - **缓存命中响应**: <0.01s
 - **答案生成**: <2.0s (使用DeepSeek API)
 - **内存使用**: ~150MB
 
 ### 缓存效果
+
 - **LLM API调用减少**: 80%+ (针对重复问题)
 - **向量检索加速**: 95%+ (针对相同查询)
 
 ## 🔧 维护管理
 
 ### 知识库更新
+
 系统使用预处理的问答知识库，位于 `data/_docs/docs.json`。
 
 ### 缓存管理
+
 - 缓存自动过期管理
 - 支持手动清除缓存
 - 缓存统计监控
 
 ### 模型管理
+
 - 首次启动自动下载EmbeddingGemma-300M
 - ModelScope国内镜像，下载稳定
 - 失败时自动回退到默认嵌入
@@ -173,12 +191,15 @@ string answer = await AskQuestion("在空调出风口晾晒衣物有何火灾风
 ## 🛠️ 故障排除
 
 ### 常见问题
+
 1. **模型下载失败**: 检查网络连接，确认ModelScope服务可用
 2. **API密钥错误**: 检查 `.env` 文件配置
 3. **内存不足**: 系统自动回退到默认嵌入模型
 
 ### 日志监控
+
 系统日志位于控制台输出，包含：
+
 - 模型加载状态
 - 检索性能指标
 - 缓存使用情况
