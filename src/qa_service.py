@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 class QAService:
     """问答服务 - 使用外部LLM API进行答案生成，集成缓存机制"""
     
-    def __init__(self, llm_api_url: str = None, api_key: str = None, enable_cache: bool = True):
+    def __init__(self, llm_api_url: str = None, api_key: str = None, enable_cache: bool = True, enable_rag: bool = True):
         self.llm_api_url = llm_api_url
         self.api_key = api_key
         self.enable_cache = enable_cache
+        self.enable_rag = enable_rag
         
         # 初始化缓存管理器
         if enable_cache:
@@ -74,9 +75,22 @@ class QAService:
                 if cached_answer:
                     logger.info(f"从缓存获取答案: {question[:50]}...")
                     return cached_answer
-            
+
             start_time = time.time()
-            
+
+            # 如果RAG功能被禁用，直接使用LLM
+            if not self.enable_rag:
+                logger.info(f"RAG已禁用，直接使用LLM回答: {question[:50]}...")
+                prompt = f"请回答以下问题：{question}\n\n请给出专业、简洁的回答，使用中文。"
+                answer = self._call_external_llm(prompt) if self.llm_api_url and self.api_key else self._generate_simple_answer(question, [])
+
+                # 缓存答案
+                if self.enable_cache and self.cache_manager and self.llm_api_url and self.api_key:
+                    self.cache_manager.set_answer(question, [], answer)
+                    logger.info(f"答案已缓存 (处理时间: {time.time() - start_time:.2f}s)")
+
+                return answer
+
             # 确定回答策略
             strategy, context_section, guidance = self._get_answer_strategy(relevant_docs)
             

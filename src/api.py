@@ -55,11 +55,12 @@ async def startup_event():
         
         # 获取DeepSeek配置
         deepseek_config = Config.get_llm_config("deepseek")
-        
+
         # 初始化问答服务
         qa_service = QAService(
             llm_api_url=deepseek_config["api_url"],
-            api_key=deepseek_config["api_key"]
+            api_key=deepseek_config["api_key"],
+            enable_rag=Config.ENABLE_RAG
         )
         
         logger.info("RAG服务启动成功")
@@ -107,15 +108,21 @@ async def health_check():
 async def query_knowledge(request: QueryRequest):
     """查询火灾预防知识"""
     try:
-        if not vector_store or not qa_service:
+        if not qa_service:
             raise HTTPException(status_code=503, detail="服务未就绪")
-        
-        # 搜索相关文档
-        relevant_docs = vector_store.search(request.question, request.top_k)
-        
+
+        relevant_docs = []
+
+        # 只有在RAG启用时才进行向量检索
+        if Config.ENABLE_RAG:
+            if not vector_store:
+                raise HTTPException(status_code=503, detail="向量存储服务未就绪")
+            # 搜索相关文档
+            relevant_docs = vector_store.search(request.question, request.top_k)
+
         # 生成答案
         answer = qa_service.generate_answer(request.question, relevant_docs)
-        
+
         # 格式化文档响应
         doc_responses = [
             DocumentResponse(
@@ -125,7 +132,7 @@ async def query_knowledge(request: QueryRequest):
             )
             for doc in relevant_docs
         ]
-        
+
         return QueryResponse(
             answer=answer,
             relevant_documents=doc_responses,
